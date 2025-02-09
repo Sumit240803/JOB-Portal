@@ -29,6 +29,34 @@ exports.register = async (req, res) => {
         res.status(500).json({ message: "Server error", error });
     }
 };
+exports.registerAdmin = async (req, res) => {
+    try {
+        const { firstname, lastname, email, password } = req.body;
+
+        // Check if admin already exists
+        let admin = await User.findOne({ email });
+        if (admin) return res.status(400).json({ message: "Admin already exists" });
+
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Create new admin with role "admin"
+        admin = new User({ 
+            firstname, 
+            lastname, 
+            email, 
+            password: hashedPassword, 
+            role: "admin" 
+        });
+
+        await admin.save();
+
+        res.status(201).json({ message: "Admin registered successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+};
 
 // Login User
 exports.login = async (req, res) => {
